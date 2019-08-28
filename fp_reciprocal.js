@@ -16,7 +16,7 @@ let reciprocal_model = (data, m, n) => {
 };
 
 // Qmn fixed point format
-const m = 7;
+const m = 6;
 const n = 16-m;
 
 let lzc = (data) => {
@@ -29,24 +29,41 @@ let lzc = (data) => {
   return val;
 };
 
-let din = 0x50ac;
+//let din = 0x50ac;
+let din = 0x10;
 //din= f2f.toFixed(0.5,m,n);
 console.log(din.toString(16));
 
 let normalize = (data) => {
-  return {data: data >> (m - lzc(data)), shift: (m-lzc(data))};
+  console.log('lzc: ' + lzc(data));
+  if(m >= lzc(data))
+    return {data: data >> (m - lzc(data)), shift: (m-lzc(data))};
+  else
+    return {data: data << (lzc(data) -m), shift: (lzc(data)-m)};
 };
 
+let renorm = (data, shift) => {
+  console.log('renorm');
+  console.log('data: ' + data.toString(16));
+  console.log('shift: ' + shift);
+  if(m >= lzc(din))
+    return data >> shift;
+  else
+    return data << shift;
+};
 
 console.log(lzc(din));
 
 let norm_dout = normalize(din);
 console.log(norm_dout.data.toString(16) + ' ' + norm_dout.shift);
 console.log('Model');
-console.log(reciprocal_model(norm_dout.data, m, n).toString(16));
+let model_out = reciprocal_model(norm_dout.data, m, n)
+console.log(model_out.toString(16));
+console.log(renorm(model_out, norm_dout.shift).toString(16));
+
+console.log('Actual');
 
 //lhsop b = 1.466 -a
-
 let b_op = (a) => {
   return f2f.toFixed(1.466,m,n) - a;
 };
@@ -85,3 +102,6 @@ console.log('e: ' + e.toString(16));
 
 let reci = reci_out(e);
 console.log('f: ' + reci.toString(16));
+
+	    
+console.log(renorm(reci, norm_dout.shift).toString(16));
